@@ -52,7 +52,7 @@ param(
 #install solr cores for sitecore 
 $solrParams =
 @{
-    Path = "$PSScriptRoot\sitecore-solr.json"
+    Path = "$PSScriptRootPathJson\sitecore-solr.json"
     SolrUrl = $SolrUrl
     SolrRoot = $SolrRoot
     SolrService = $SolrService
