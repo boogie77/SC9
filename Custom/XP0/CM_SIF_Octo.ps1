@@ -47,9 +47,8 @@ param(
 [Parameter(Mandatory=$true)]
 [string]$MarketingAutomationOperationsService = "",
 [Parameter(Mandatory=$true)]
-[string]$MarketingAutomationReportingService = "",
-[Parameter(Mandatory=$true)]
-[string]$TelerikEncryptionKey = ""
+[string]$MarketingAutomationReportingService = ""
+
 )
 
 #install solr cores for sitecore 
@@ -109,7 +108,6 @@ $sitecoreParams =
     XConnectReferenceDataService = $XConnectReferenceDataService
     MarketingAutomationOperationsService = $MarketingAutomationOperationsService
     MarketingAutomationReportingService = $MarketingAutomationReportingService
-    TelerikEncryptionKey = $TelerikEncryptionKey
     AppPooluserName = $WinAuthUserSql
     AppPoolPassword = $WinAuthPasswordSql
 }
