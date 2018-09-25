@@ -29,8 +29,6 @@ param(
 [Parameter(Mandatory=$true)]
 [string]$SqlServer = "",
 [Parameter(Mandatory=$true)]
-[string]$ExmEdsProvider = "",
-[Parameter(Mandatory=$true)]
 [string]$EXMCryptographicKey = "",
 [Parameter(Mandatory=$true)]
 [string]$EXMAuthenticationKey = "",
@@ -100,7 +98,6 @@ $sitecoreParams =
     SqlMessagingUser = $WinAuthUserSql
     SqlMessagingPassword = $WinAuthPasswordSql
     SqlServer = $SqlServer
-    ExmEdsProvider = $ExmEdsProvider
     EXMCryptographicKey = $EXMCryptographicKey
     EXMAuthenticationKey = $EXMAuthenticationKey
     SolrUrl =- $SolrUrl
