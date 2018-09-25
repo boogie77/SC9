@@ -379,14 +379,6 @@
                 "Name": "[parameter('SiteName')]",
                 "Action": "Start"
             }
-        },
-        "StartWebsite": {
-            // Starts the website.
-            "Type": "ManageWebsite",
-            "Params": {
-                "Name": "[parameter('SiteName')]",
-                "Action": "Start"
-            }
         }
     }
 }

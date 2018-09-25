@@ -521,6 +521,14 @@
                 "UserName": "admin",
                 "Password": "[parameter('SitecoreAdminPassword')]"
             }
+        },
+        "StopWebsiteBecauseOfMaintenancePage": {
+            // Stops the website if it is running.
+            "Type": "ManageWebsite",
+            "Params": {
+                "Name": "[parameter('SiteName')]",
+                "Action": "Stop"
+            }
         }
     }
 }
