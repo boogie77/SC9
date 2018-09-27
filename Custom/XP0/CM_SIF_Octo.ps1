@@ -33,6 +33,8 @@ param(
 [Parameter(Mandatory=$true)]
 [string]$EXMAuthenticationKey = "",
 [Parameter(Mandatory=$true)]
+[string]$CorePrefix = "",
+[Parameter(Mandatory=$true)]
 [string]$SolrUrl = "",
 [Parameter(Mandatory=$true)]
 [string]$SolrRoot = "",
@@ -56,7 +58,7 @@ $solrParams =
     SolrUrl = $SolrUrl
     SolrRoot = $SolrRoot
     SolrService = $SolrService
-    CorePrefix = $prefix
+    CorePrefix = $CorePrefix
 } 
 Install-SitecoreConfiguration @solrParams -Verbose
 
@@ -69,7 +71,7 @@ $sitecoreParams =
     LicenseFile = "$PSScriptRootPathJson\license.xml"
     SqlDbPrefix = $SqlDbPrefix
     SSLCert = $SSLCert
-    SolrCorePrefix = $prefix
+    SolrCorePrefix = $CorePrefix
     Sitename = $SitecoreSiteName
     XConnectCert = $SSLCert
     SitecoreAdminPassword = $SitecoreAdminPassword
