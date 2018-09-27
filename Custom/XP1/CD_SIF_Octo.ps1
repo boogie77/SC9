@@ -17,6 +17,8 @@ param(
 [Parameter(Mandatory=$true)]
 [string]$SSLCert = "",
 [Parameter(Mandatory=$true)]
+[string]$SolrCorePrefix = "",
+[Parameter(Mandatory=$true)]
 [string]$WinAuthUserSql = "",
 [Parameter(Mandatory=$true)]
 [string]$WinAuthPasswordSql = "",
@@ -47,7 +49,7 @@ $sitecoreParams =
     LicenseFile = "$PSScriptRootPathJson\license.xml"
     SqlDbPrefix = $SqlDbPrefix
     SSLCert = $SSLCert
-    SolrCorePrefix = $prefix
+    SolrCorePrefix = $SolrCorePrefix
     Sitename = $SitecoreSiteName
     XConnectCert = $SSLCert
     SqlCoreUser = $WinAuthUserSql
