@@ -42,8 +42,8 @@ param(
 $sitecoreParams = 
 @{
     FolderRootPath = $FolderRootPath
-    Path = "$PSScriptRootPathJson\sitecore-XM1-cm.json"
-    Package = "$PSScriptRootPath\Sitecore 9.0.1 rev. 171219 (OnPrem)_cm.scwdp.zip" 
+    Path = "$PSScriptRootPathJson\sitecore-XP1-cd.json"
+    Package = "$PSScriptRootPath\Sitecore 9.0.1 rev. 171219 (OnPrem)_cd.scwdp.zip" 
     LicenseFile = "$PSScriptRootPathJson\license.xml"
     SqlDbPrefix = $SqlDbPrefix
     SSLCert = $SSLCert
@@ -63,7 +63,7 @@ $sitecoreParams =
     SqlServer = $SqlServer
     EXMCryptographicKey = $EXMCryptographicKey
     EXMAuthenticationKey = $EXMAuthenticationKey
-    SolrUrl =- $SolrUrl
+    SolrUrl = $SolrUrl
     XConnectCollectionService = $XConnectCollectionService
     XConnectReferenceDataService = $XConnectReferenceDataService
     MarketingAutomationOperationsService = $MarketingAutomationOperationsService

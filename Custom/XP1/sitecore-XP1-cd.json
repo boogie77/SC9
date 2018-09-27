@@ -266,13 +266,19 @@
             },
             "Skip": "[not(parameter('SSLCert'))]"
         },
-        "CreateBindings": {
+        "CreateDefaultBindings": {
             // Configures the site bindings for the website.
             "Type": "WebBinding",
             "Params": {
-                "SiteName": "[parameter('SiteName')]",
-                "Add": [ { "HostHeader": "[parameter('SiteName')]" } ],
-                "Remove": [ { "Port": "80", "IPAddress": "*" } ]
+                "SiteName" : "[parameter('SiteName')]",
+                "Add": [
+                    {
+                        "HostHeader": "[parameter('SiteName')]",
+                        "Protocol": "http",
+                        "Port": "80",
+                        "IPAddress": "*"
+                    }
+                ]
             }
         },
         "CreateHostHeader": {

@@ -64,7 +64,7 @@ Install-SitecoreConfiguration @solrParams -Verbose
 $sitecoreParams = 
 @{
     FolderRootPath = $FolderRootPath
-    Path = "$PSScriptRootPathJson\sitecore-XM1-cm.json"
+    Path = "$PSScriptRootPathJson\sitecore-XP0.json"
     Package = "$PSScriptRootPath\Sitecore 9.0.1 rev. 171219 (OnPrem)_single.scwdp.zip"
     LicenseFile = "$PSScriptRootPathJson\license.xml"
     SqlDbPrefix = $SqlDbPrefix
@@ -100,7 +100,7 @@ $sitecoreParams =
     SqlServer = $SqlServer
     EXMCryptographicKey = $EXMCryptographicKey
     EXMAuthenticationKey = $EXMAuthenticationKey
-    SolrUrl =- $SolrUrl
+    SolrUrl = $SolrUrl
     XConnectCollectionService = $XConnectCollectionService
     XConnectReferenceDataService = $XConnectReferenceDataService
     MarketingAutomationOperationsService = $MarketingAutomationOperationsService
