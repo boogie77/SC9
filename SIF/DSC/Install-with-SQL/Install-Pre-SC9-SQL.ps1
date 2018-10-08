@@ -191,6 +191,30 @@ Configuration InstallSC9 {
             DependsOn            = "[cChocoInstaller]installChoco"
         }
 
+        # Install Microsoft ODBC Driver for SQL Server 2016
+        cChocoPackageInstaller sqlserver-odbcdriver {
+            Name      = "sqlserver-odbcdriver"
+            DependsOn = "[cChocoInstaller]installChoco"
+        }
+        
+        # Install SQL Server 2017 System CLR Types x86
+        Package 'SQLOdbcDriverPackage-SQL2017-x86'
+        {
+            Ensure    = 'Present'
+            Path      = Join-Path -Path $LocalPath -ChildPath 'msodbcsql.msi'
+            Name      = 'Microsoft ODBC Driver 13 for SQL Server'
+            ProductId = '1B953BDD-F8B1-43CA-B997-DC2FFE80BE01'
+        }
+
+        # Install SQL Server 2017 System CLR Types x64
+        Package 'SQLOdbcDriverPackage-SQL2017-x64'
+        {
+            Ensure    = 'Present'
+            Path      = Join-Path -Path $LocalPath -ChildPath 'msodbcsql.msi'
+            Name      = 'Microsoft ODBC Driver 13 for SQL Server'
+            ProductId = '7E425BFB-1DEB-499F-8F3F-3522A6E98754'
+        }
+
         # Check prerequisites and mount SQL image file if needed
         Script OpenSQLISO {
             GetScript  =
