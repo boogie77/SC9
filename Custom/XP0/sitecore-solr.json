@@ -37,6 +37,16 @@
             "Type": "string",
             "DefaultValue": "sitecore",
             "Description": "The prefix for each of the created indexes."
+        },
+        "RetryCount": {
+            "Type": "int",
+            "DefaultValue": "40",
+            "Description": "RetryCount for each create Solr core task."
+        },
+        "RetryDelay": {
+            "Type": "int",
+            "DefaultValue": "10000",
+            "Description": "RetryDelay for each create Solr core task."
         }
     },
     "Variables": {
@@ -206,17 +216,17 @@
             // Tells Solr to create the new cores.
             "Type": "ManageSolrCore",
             "Params": [
-                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "Arguments": { "Name": "[variable('Core.Name')]" } },
-                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "Arguments": { "Name": "[variable('Master.Name')]" } },
-                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "Arguments": { "Name": "[variable('Web.Name')]" } },
-                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "Arguments": { "Name": "[variable('MD.Master.Name')]" } },
-                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "Arguments": { "Name": "[variable('MD.Web.Name')]" } },
-                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "Arguments": { "Name": "[variable('MA.Master.Name')]" } },
-                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "Arguments": { "Name": "[variable('MA.Web.Name')]" } },
-                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "Arguments": { "Name": "[variable('Testing.Name')]" } },
-                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "Arguments": { "Name": "[variable('Suggested.Name')]" } },
-                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "Arguments": { "Name": "[variable('FXM.Master.Name')]" } },
-                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "Arguments": { "Name": "[variable('FXM.Web.Name')]" } }
+                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "RetryCount": "[parameter('RetryCount')]","RetryDelay": "[parameter('RetryCount')]","Arguments": { "Name": "[variable('Core.Name')]" } },
+                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "RetryCount": "[parameter('RetryCount')]","RetryDelay": "[parameter('RetryCount')]","Arguments": { "Name": "[variable('Master.Name')]" } },
+                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "RetryCount": "[parameter('RetryCount')]","RetryDelay": "[parameter('RetryCount')]","Arguments": { "Name": "[variable('Web.Name')]" } },
+                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "RetryCount": "[parameter('RetryCount')]","RetryDelay": "[parameter('RetryCount')]","Arguments": { "Name": "[variable('MD.Master.Name')]" } },
+                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "RetryCount": "[parameter('RetryCount')]","RetryDelay": "[parameter('RetryCount')]","Arguments": { "Name": "[variable('MD.Web.Name')]" } },
+                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "RetryCount": "[parameter('RetryCount')]","RetryDelay": "[parameter('RetryCount')]","Arguments": { "Name": "[variable('MA.Master.Name')]" } },
+                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "RetryCount": "[parameter('RetryCount')]","RetryDelay": "[parameter('RetryCount')]","Arguments": { "Name": "[variable('MA.Web.Name')]" } },
+                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "RetryCount": "[parameter('RetryCount')]","RetryDelay": "[parameter('RetryCount')]","Arguments": { "Name": "[variable('Testing.Name')]" } },
+                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "RetryCount": "[parameter('RetryCount')]","RetryDelay": "[parameter('RetryCount')]","Arguments": { "Name": "[variable('Suggested.Name')]" } },
+                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "RetryCount": "[parameter('RetryCount')]","RetryDelay": "[parameter('RetryCount')]","Arguments": { "Name": "[variable('FXM.Master.Name')]" } },
+                { "Action": "Create", "Address": "[parameter('SolrUrl')]", "RetryCount": "[parameter('RetryCount')]","RetryDelay": "[parameter('RetryCount')]","Arguments": { "Name": "[variable('FXM.Web.Name')]" } }
             ]
         }
     }
