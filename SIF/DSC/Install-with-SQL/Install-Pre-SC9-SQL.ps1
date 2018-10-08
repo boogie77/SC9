@@ -18,6 +18,7 @@ Configuration InstallSC9 {
     Import-DscResource -ModuleName 'PSDesiredStateConfiguration'
     Import-DscResource -ModuleName 'cChoco'
     Import-DscResource -ModuleName 'SqlServerDsc'
+    Import-DscResource -ModuleName 'PackageManagement'
 
     node localhost {
 
@@ -55,7 +56,7 @@ Configuration InstallSC9 {
             Name   = "Web-Mgmt-Service"
         }
 
-        # Downalod Web Deploy 3.6
+        # Download Web Deploy 3.6
         Script DownloadMsi {
             GetScript  =
             {
@@ -96,9 +97,9 @@ Configuration InstallSC9 {
             DependsOn  = "[WindowsFeature]NetFrameworkCore"
         }
 
-        # Install JDK8
+        # Install JRE8
         cChocoPackageInstaller installJdk8 {
-            Name      = "jdk8"
+            Name      = "jre8"
             DependsOn = "[cChocoInstaller]installChoco"
         }
 
@@ -148,6 +149,46 @@ Configuration InstallSC9 {
         cChocoPackageInstaller vscode {
             Name      = "vscode"
             DependsOn = "[cChocoInstaller]installChoco"
+        }      
+
+        # Install SQL Server 2016 System CLR Types
+        cChocoPackageInstaller sql2016-clrtypes {
+            Name      = "sql2016-clrtypes"
+            DependsOn = "[cChocoInstaller]installChoco"
+        }
+
+        # Install SQL Server 2017 System CLR Types x86
+        Package 'SQLSysClrTypesPackage-SQL2016-x86'
+        {
+            Ensure    = 'Present'
+            Path      = Join-Path -Path $LocalPath -ChildPath 'SQLSysClrTypes.msi'
+            Name      = 'Microsoft System CLR Types for SQL Server 2017'
+            ProductId = 'A836E244-6BEA-4E22-8D6A-55972AA3B04F'
+        }
+
+        # Install SQL Server 2017 System CLR Types x86
+        Package 'SQLSysClrTypesPackage-SQL2016-x64'
+        {
+            Ensure    = 'Present'
+            Path      = Join-Path -Path $LocalPath -ChildPath 'SQLSysClrTypes.msi'
+            Name      = 'Microsoft System CLR Types for SQL Server 2017'
+            ProductId = '9D78F5D4-79D2-4FC6-AC56-F364A0ABC54F'
+        }
+        
+        # Install Microsoft Shared Management Objects for SQL Server 2016
+        cChocoPackageInstaller sql2016-smo {
+            Name      = "sql2016-smo"
+            DependsOn = "[cChocoInstaller]installChoco"
+        }
+
+        # Install Microsoft Shared Management Objects for SQL Server 2017
+        PackageManagement NugetPackage
+        {
+            Ensure               = "Present"
+            Name                 = "Microsoft.SqlServer.SqlManagementObjects"
+            AdditionalParameters = "$env:HomeDrive\nuget"
+            RequiredVersion      = "140.17283.0"
+            DependsOn            = "[cChocoInstaller]installChoco"
         }
 
         # Check prerequisites and mount SQL image file if needed

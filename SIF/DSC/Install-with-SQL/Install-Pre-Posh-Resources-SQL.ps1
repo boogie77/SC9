@@ -23,6 +23,18 @@ if(!($DscModuleSqlServer)){
     Write-Output "DSC module called `"SqlServerDsc`" is present. Move to the next line."
 }
 
+### Check PackageManagement module
+$PackageManagement = Get-Item -Path "$DSCModulesPath\*" | Where-Object {$_.Name -like "*PackageManagement*"}
+if(!($PackageManagement)){
+    Write-Output "DSC module called `"PackageManagement`" is not present. Starting with the installation."
+    Install-Module -Name PackageManagement -Force -Verbose
+    Write-Output "PackageManagement module installed. Move to the next line."
+}
+    else{
+    Write-Output "DSC module called `"PackageManagement`" is present. Move to the next line."
+}
+ 
+
 ### Modules below can be obtained from the Sitecore MyGet repository.
 ### Check Package Provider NuGet
 $PackageProvider = Find-PackageProvider -Name NuGet | Where-Object {$_.Version -ge "2.8.5.201"}
