@@ -2,7 +2,7 @@
 //         Sitecore Install Framework - Sitecore XP0 Configuration            //
 //                                                                            //
 //  Run this configuration to install a single instance of Sitecore.          //
-//  This instance is configured not to use Solr.                                  //
+//  This instance is configured not to use Solr and Analytics                 //
 //                                                                            //
 //  NOTE: Only single line comments are accepted in configurations.           //
 // -------------------------------------------------------------------------- //
