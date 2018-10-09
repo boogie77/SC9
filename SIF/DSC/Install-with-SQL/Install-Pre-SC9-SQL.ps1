@@ -1,5 +1,8 @@
 ### To Do
-### Data-Tier Application Framework [line: 108 - 114]
+### Deploy DacPac with PowerShell. 
+### Assign permissions to SQL Admin user.
+### Integrated security in connection strings.
+
 
 $DebugPreference = "Continue"
 
@@ -36,6 +39,14 @@ Configuration InstallSC9 {
             Ensure          = "Present"
             Type            = "Directory"
             DestinationPath = "$SQLPath"
+        }
+
+        # Ensure presence of download folder and log subdirectory
+        File CreateNugetFolders {
+
+            Ensure          = "Present"
+            Type            = "Directory"
+            DestinationPath = "$env:SystemDrive\NuGet"
         }
 
         # Install .NET 3.5
@@ -182,11 +193,10 @@ Configuration InstallSC9 {
         }
 
         # Install Microsoft Shared Management Objects for SQL Server 2017
-        PackageManagement NugetPackage
-        {
+        PackageManagement NugetPackage {
             Ensure               = "Present"
             Name                 = "Microsoft.SqlServer.SqlManagementObjects"
-            AdditionalParameters = "$env:HomeDrive\nuget"
+            AdditionalParameters = "$env:SystemDrive\NuGet"
             RequiredVersion      = "140.17283.0"
             DependsOn            = "[cChocoInstaller]installChoco"
         }
@@ -201,7 +211,7 @@ Configuration InstallSC9 {
         Package 'SQLOdbcDriverPackage-SQL2017-x86'
         {
             Ensure    = 'Present'
-            Path      = Join-Path -Path $LocalPath -ChildPath 'msodbcsql.msi'
+            Path      = Join-Path -Path "$ISOFolder\msi_packs" -ChildPath 'msodbcsql.msi'
             Name      = 'Microsoft ODBC Driver 13 for SQL Server'
             ProductId = '1B953BDD-F8B1-43CA-B997-DC2FFE80BE01'
         }
@@ -210,7 +220,7 @@ Configuration InstallSC9 {
         Package 'SQLOdbcDriverPackage-SQL2017-x64'
         {
             Ensure    = 'Present'
-            Path      = Join-Path -Path $LocalPath -ChildPath 'msodbcsql.msi'
+            Path      = Join-Path -Path "$ISOFolder\msi_packs" -ChildPath 'msodbcsql.msi'
             Name      = 'Microsoft ODBC Driver 13 for SQL Server'
             ProductId = '7E425BFB-1DEB-499F-8F3F-3522A6E98754'
         }
