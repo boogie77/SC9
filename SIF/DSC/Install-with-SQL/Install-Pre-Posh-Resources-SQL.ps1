@@ -42,7 +42,7 @@ if(!($xPendingReboot)){
     Write-Output "xPendingReboot module installed. Move to the next line."
 }
     else{
-    Write-Output "DSC module called `"PackageManagement`" is present. Move to the next line."
+    Write-Output "DSC module called `"xPendingReboot`" is present. Move to the next line."
 }
  
 
