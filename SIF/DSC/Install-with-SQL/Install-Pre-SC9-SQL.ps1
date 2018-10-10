@@ -224,7 +224,7 @@ Configuration InstallSC9 {
             DependsOn = "[cChocoInstaller]installChoco"
         }
         
-        # nstall Microsoft ODBC Driver x86 for SQL Server 2017
+        # Install Microsoft ODBC Driver x86 for SQL Server 2017
         Package 'SQLOdbcDriverPackage-SQL2017-x86'
         {
             Ensure    = 'Present'
