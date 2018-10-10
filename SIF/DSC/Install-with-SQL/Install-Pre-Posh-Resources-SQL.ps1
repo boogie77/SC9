@@ -24,10 +24,10 @@ if(!($DscModuleSqlServer)){
 }
 
 ### Check PackageManagement module
-$PackageManagement = Get-Item -Path "$DSCModulesPath\PackageManagement\*" | Where-Object {$_.Name -like "1.1.7.0"}
+$PackageManagement = Get-Item -Path "$DSCModulesPath\*" | Where-Object {$_.Name -like "1.1.7.0"}
 if(!($PackageManagement)){
     Write-Output "DSC module called `"PackageManagement Version 1.1.7.0`" is not present. Starting with the installation."
-    Install-Module -Name PackageManagement -MinimumVersion '1.1.7.0' -MaximumVersion '1.1.70' -Force -Verbose
+    Install-Module -Name PackageManagement -MinimumVersion '1.1.7.0' -MaximumVersion '1.1.7.0' -Repository PSGallery -Force -Verbose
     Write-Output "PackageManagement module installed. Move to the next line."
 }
     else{

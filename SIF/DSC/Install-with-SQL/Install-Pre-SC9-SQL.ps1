@@ -24,7 +24,7 @@ Configuration InstallSC9 {
     Import-DscResource -ModuleName 'PSDesiredStateConfiguration'
     Import-DscResource -ModuleName 'cChoco'
     Import-DscResource -ModuleName 'SqlServerDsc'
-    Import-DscResource -ModuleName 'PackageManagement' -ModuleVersion '1.1.7.2'
+    Import-DscResource -ModuleName 'PackageManagement' -ModuleVersion '1.1.7.0'
 
     node localhost {
 
