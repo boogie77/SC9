@@ -2,6 +2,7 @@
 ### Deploy DacPac with PowerShell. 
 ### Assign permissions to SQL Admin user.
 ### Integrated security in connection strings.
+### Copy Sitecore 9 SQL databases
 
 
 $DebugPreference = "Continue"
@@ -13,17 +14,27 @@ Configuration InstallSC9 {
         [string]
         $LocalPath = "$env:SystemDrive\DSC_Downloads",
         $ISOFolder = "\\SC9-SRV\ShareData",
+        $MSIFolder = "$ISOFolder\msi_packs",
         $SQLVer = "en_sql_server_2016_developer_with_service_pack_1_x64_dvd_9548071.iso",
-        $SQLPath = "$env:SystemDrive\SQL2016DEVSP1"
+        $SQLPath = "$env:SystemDrive\SQL2016DEVSP1",
+        $DestinationNuGetPath = "$env:SystemDrive\NuGet"
     )
 
     # Make sure the DSC Resource modules are downloaded
     Import-DscResource -ModuleName 'PSDesiredStateConfiguration'
     Import-DscResource -ModuleName 'cChoco'
     Import-DscResource -ModuleName 'SqlServerDsc'
-    Import-DscResource -ModuleName 'PackageManagement'
+    Import-DscResource -ModuleName 'PackageManagement' -ModuleVersion '1.1.7.2'
 
     node localhost {
+
+        # Ensure presence of MOF folder
+        File CreateMOFFolders {
+
+            Ensure          = "Present"
+            Type            = "Directory"
+            DestinationPath = "$env:SystemDrive\MOFs"
+        }
 
         # Ensure presence of download folder and log subdirectory
         File CreateDSCFolders {
@@ -46,7 +57,7 @@ Configuration InstallSC9 {
 
             Ensure          = "Present"
             Type            = "Directory"
-            DestinationPath = "$env:SystemDrive\NuGet"
+            DestinationPath = "$DestinationNuGetPath"
         }
 
         # Install .NET 3.5
@@ -160,7 +171,13 @@ Configuration InstallSC9 {
         cChocoPackageInstaller vscode {
             Name      = "vscode"
             DependsOn = "[cChocoInstaller]installChoco"
-        }      
+        }
+        
+        # Install Telerik Fiddler
+        cChocoPackageInstaller fiddler {
+            Name      = "fiddler"
+            DependsOn = "[cChocoInstaller]installChoco"
+        }  
 
         # Install SQL Server 2016 System CLR Types
         cChocoPackageInstaller sql2016-clrtypes {
@@ -169,19 +186,19 @@ Configuration InstallSC9 {
         }
 
         # Install SQL Server 2017 System CLR Types x86
-        Package 'SQLSysClrTypesPackage-SQL2016-x86'
+        Package 'SQLSysClrTypesPackage-SQL2017-x86'
         {
             Ensure    = 'Present'
-            Path      = Join-Path -Path $LocalPath -ChildPath 'SQLSysClrTypes.msi'
+            Path      = Join-Path -Path "$MSIFolder\x86" -ChildPath 'SQLSysClrTypes.msi'
             Name      = 'Microsoft System CLR Types for SQL Server 2017'
             ProductId = 'A836E244-6BEA-4E22-8D6A-55972AA3B04F'
         }
 
         # Install SQL Server 2017 System CLR Types x86
-        Package 'SQLSysClrTypesPackage-SQL2016-x64'
+        Package 'SQLSysClrTypesPackage-SQL2017-x64'
         {
             Ensure    = 'Present'
-            Path      = Join-Path -Path $LocalPath -ChildPath 'SQLSysClrTypes.msi'
+            Path      = Join-Path -Path "$MSIFolder\x64" -ChildPath 'SQLSysClrTypes.msi'
             Name      = 'Microsoft System CLR Types for SQL Server 2017'
             ProductId = '9D78F5D4-79D2-4FC6-AC56-F364A0ABC54F'
         }
@@ -196,7 +213,7 @@ Configuration InstallSC9 {
         PackageManagement NugetPackage {
             Ensure               = "Present"
             Name                 = "Microsoft.SqlServer.SqlManagementObjects"
-            AdditionalParameters = "$env:SystemDrive\NuGet"
+            AdditionalParameters = @{"Destination" = $DestinationNuGetPath}
             RequiredVersion      = "140.17283.0"
             DependsOn            = "[cChocoInstaller]installChoco"
         }
@@ -207,20 +224,20 @@ Configuration InstallSC9 {
             DependsOn = "[cChocoInstaller]installChoco"
         }
         
-        # Install SQL Server 2017 System CLR Types x86
+        # nstall Microsoft ODBC Driver x86 for SQL Server 2017
         Package 'SQLOdbcDriverPackage-SQL2017-x86'
         {
             Ensure    = 'Present'
-            Path      = Join-Path -Path "$ISOFolder\msi_packs" -ChildPath 'msodbcsql.msi'
+            Path      = Join-Path -Path "$MSIFolder\x86" -ChildPath 'msodbcsql.msi'
             Name      = 'Microsoft ODBC Driver 13 for SQL Server'
             ProductId = '1B953BDD-F8B1-43CA-B997-DC2FFE80BE01'
         }
 
-        # Install SQL Server 2017 System CLR Types x64
+        # Install Microsoft ODBC Driver x64 for SQL Server 2017
         Package 'SQLOdbcDriverPackage-SQL2017-x64'
         {
             Ensure    = 'Present'
-            Path      = Join-Path -Path "$ISOFolder\msi_packs" -ChildPath 'msodbcsql.msi'
+            Path      = Join-Path -Path "$MSIFolder\x64" -ChildPath 'msodbcsql.msi'
             Name      = 'Microsoft ODBC Driver 13 for SQL Server'
             ProductId = '7E425BFB-1DEB-499F-8F3F-3522A6E98754'
         }
@@ -275,10 +292,8 @@ Configuration InstallSC9 {
             SQLSysAdminAccounts = @('Administrators')
             DependsOn           = '[Script]OpenSQLISO'
         }
-
-        # Copy Sitecore 9 SQL databases
     }
 }
 
-InstallSC9 -OutputPath .\MOFs\
-Start-DscConfiguration -Path ".\MOFs" -Wait -Force -Verbose
+InstallSC9 -OutputPath "$env:SystemDrive\MOFs\"
+Start-DscConfiguration -Path "$env:SystemDrive\MOFs\" -Wait -Force -Verbose

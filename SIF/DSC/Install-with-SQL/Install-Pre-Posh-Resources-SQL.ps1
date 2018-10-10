@@ -24,10 +24,10 @@ if(!($DscModuleSqlServer)){
 }
 
 ### Check PackageManagement module
-$PackageManagement = Get-Item -Path "$DSCModulesPath\*" | Where-Object {$_.Name -like "*PackageManagement*"}
+$PackageManagement = Get-Item -Path "$DSCModulesPath\PackageManagement\*" | Where-Object {$_.Name -like "1.1.7.0"}
 if(!($PackageManagement)){
-    Write-Output "DSC module called `"PackageManagement`" is not present. Starting with the installation."
-    Install-Module -Name PackageManagement -Force -Verbose
+    Write-Output "DSC module called `"PackageManagement Version 1.1.7.0`" is not present. Starting with the installation."
+    Install-Module -Name PackageManagement -MinimumVersion '1.1.7.0' -MaximumVersion '1.1.70' -Force -Verbose
     Write-Output "PackageManagement module installed. Move to the next line."
 }
     else{
@@ -48,11 +48,22 @@ if(!($PackageProvider)){
     Write-Output "Package Provider `"NuGet with Version: `"$($PackageProvider.Version)`" is present. Move to the next line."
 }
 
+### Check PSRepository NuGet
+$PSRepository = Get-PSRepository -ErrorAction SilentlyContinue | Where-Object {$_.Name -like "Nuget"}
+if(!($PSRepository)){
+    Write-Output "PSRepository called `"Nuget`" is not present. Starting with the installation."
+    Register-PSRepository -Name Nuget -SourceLocation 'http://nuget.org/api/v2/' -Verbose -InstallationPolicy Trusted
+    Write-Output "PSRepository called `"Nuget`" installed. Move to the next line."
+}
+    else{
+    Write-Output "PSRepository called `"SitecoreGallery`" is present. Move to the next line."
+}
+
 ### Check PSRepository SitecoreGallery
-$PSRepository = Get-PSRepository -ErrorAction SilentlyContinue | Where-Object {$_.Name -ge "SitecoreGallery"}
+$PSRepository = Get-PSRepository -ErrorAction SilentlyContinue | Where-Object {$_.Name -like "SitecoreGallery"}
 if(!($PSRepository)){
     Write-Output "PSRepository called `"SitecoreGallery`" is not present. Starting with the installation."
-    Register-PSRepository -Name SitecoreGallery -SourceLocation https://sitecore.myget.org/F/sc-powershell/api/v2 -Verbose -InstallationPolicy Trusted
+    Register-PSRepository -Name SitecoreGallery -SourceLocation 'https://sitecore.myget.org/F/sc-powershell/api/v2' -Verbose -InstallationPolicy Trusted
     Write-Output "PSRepository called `"SitecoreGallery`" installed. Move to the next line."
 }
     else{
