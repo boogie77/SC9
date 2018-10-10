@@ -33,6 +33,17 @@ if(!($PackageManagement)){
     else{
     Write-Output "DSC module called `"PackageManagement`" is present. Move to the next line."
 }
+
+### Check xPendingReboot module
+$xPendingReboot = Get-Item -Path "$DSCModulesPath\*" | Where-Object {$_.Name -eq "*xPendingReboot*"}
+if(!($xPendingReboot)){
+    Write-Output "DSC module called `"xPendingReboot`" is not present. Starting with the installation."
+    Install-Module -Name xPendingReboot -Force -Verbose
+    Write-Output "xPendingReboot module installed. Move to the next line."
+}
+    else{
+    Write-Output "DSC module called `"PackageManagement`" is present. Move to the next line."
+}
  
 
 ### Modules below can be obtained from the Sitecore MyGet repository.

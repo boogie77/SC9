@@ -12,6 +12,7 @@ Configuration InstallSC9 {
     param
     (
         [string]
+        $ComputerName = "$env:COMPUTERNAME",
         $LocalPath = "$env:SystemDrive\DSC_Downloads",
         $ISOFolder = "\\SC9-SRV\ShareData",
         $MSIFolder = "$ISOFolder\msi_packs",
@@ -25,6 +26,7 @@ Configuration InstallSC9 {
     Import-DscResource -ModuleName 'cChoco'
     Import-DscResource -ModuleName 'SqlServerDsc'
     Import-DscResource -ModuleName 'PackageManagement' -ModuleVersion '1.1.7.0'
+    Import-DscResource -Module xPendingReboot
 
     node localhost {
 
@@ -209,37 +211,40 @@ Configuration InstallSC9 {
             DependsOn = "[cChocoInstaller]installChoco"
         }
 
+        # Ensures the required package NuGet source is available
+        PackageManagementSource SourceRepository
+        {
+            Ensure      = "Present"
+            Name        = "MyNuget"
+            ProviderName= "Nuget"
+            SourceLocation   = "http://nuget.org/api/v2/"
+            InstallationPolicy ="Trusted"
+        }
+
         # Install Microsoft Shared Management Objects for SQL Server 2017
         PackageManagement NugetPackage {
             Ensure               = "Present"
             Name                 = "Microsoft.SqlServer.SqlManagementObjects"
             AdditionalParameters = @{"Destination" = $DestinationNuGetPath}
             RequiredVersion      = "140.17283.0"
-            DependsOn            = "[cChocoInstaller]installChoco"
+            DependsOn            = "[cChocoInstaller]SourceRepository"
         }
 
-        # Install Microsoft ODBC Driver for SQL Server 2016
+        # Install Microsoft ODBC Driver 13 for SQL Server
         cChocoPackageInstaller sqlserver-odbcdriver {
             Name      = "sqlserver-odbcdriver"
             DependsOn = "[cChocoInstaller]installChoco"
         }
-        
-        # Install Microsoft ODBC Driver x86 for SQL Server 2017
-        Package 'SQLOdbcDriverPackage-SQL2017-x86'
-        {
-            Ensure    = 'Present'
-            Path      = Join-Path -Path "$MSIFolder\x86" -ChildPath 'msodbcsql.msi'
-            Name      = 'Microsoft ODBC Driver 13 for SQL Server'
-            ProductId = '1B953BDD-F8B1-43CA-B997-DC2FFE80BE01'
-        }
 
-        # Install Microsoft ODBC Driver x64 for SQL Server 2017
-        Package 'SQLOdbcDriverPackage-SQL2017-x64'
+        # Reboot the system before SQL setup and deploymment
+        xPendingReboot PendingReboot {
+            Name = $ComputerName
+        }
+        
+        # Specifies whether the node is automatically restarted when configuration requires it
+        LocalConfigurationManager
         {
-            Ensure    = 'Present'
-            Path      = Join-Path -Path "$MSIFolder\x64" -ChildPath 'msodbcsql.msi'
-            Name      = 'Microsoft ODBC Driver 13 for SQL Server'
-            ProductId = '7E425BFB-1DEB-499F-8F3F-3522A6E98754'
+            RebootNodeIfNeeded = $true
         }
 
         # Check prerequisites and mount SQL image file if needed
