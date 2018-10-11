@@ -26,8 +26,6 @@ Configuration InstallSC9 {
     (
         [string]
         $ComputerName = "$env:COMPUTERNAME",
-        $LcmFolderPath = "$env:SystemDrive\MOFs\LCM\",
-        $DscFolderPath = "$env:SystemDrive\MOFs\DSC\",
         $LocalPath = "$env:SystemDrive\DSC_Downloads",
         $ISOFolder = "\\SC9-SRV\ShareData",
         $MSIFolder = "$ISOFolder\msi_packs",
@@ -44,22 +42,6 @@ Configuration InstallSC9 {
     Import-DscResource -Module xPendingReboot
 
     node localhost {
-
-        # Ensure presence of LCM MOF folder
-        File CreateMOFFolders {
-
-            Ensure          = "Present"
-            Type            = "Directory"
-            DestinationPath = "$LcmFolderPath"
-        }
-
-        # Ensure presence of DSC MOF folder
-        File CreateMOFFolders {
-
-            Ensure          = "Present"
-            Type            = "Directory"
-            DestinationPath = "$DscFolderPath"
-        }
 
         # Ensure presence of download folder and log subdirectory
         File CreateDSCFolders {
@@ -323,9 +305,29 @@ Configuration InstallSC9 {
     }
 }
 
-Remove-Item -Path "$lcmFolderPath\*" -Verbose -Force
-Set-DscLocalConfigurationManager -Path "$lcmFolderPath"
+# Apply LCM settings
+$LcmFolderPath = "$env:SystemDrive\MOFs\LCM\"
+$TestPathLcm = $(Test-path $LcmFolderPath)
+if(!($TestPathLcm)){
+    New-Item -Path "$LcmFolderPath" -Verbose
+}
+else {
+    Write-output "LCM folder exist. Move to the next line."
+}
 
-Remove-Item -Path "$dscFolderPath\*" -Verbose -Force
-InstallSC9 -OutputPath "$dscFolderPath"
-Start-DscConfiguration -Path "$dscFolderPath" -Wait -Force -Verbose
+Remove-Item -Path "$LcmFolderPath\*" -Verbose -Force
+LCMConfig -OutputPath "$LcmFolderPath"
+Set-DscLocalConfigurationManager -Path "$LcmFolderPath"
+
+# Apply DSC settings
+$DscFolderPath = "$env:SystemDrive\MOFs\DSC\"
+$TestPathDsc = $(Test-path $DscFolderPath)
+if(!($TestPathDsc)){
+    New-Item -Path "$DscFolderPath" -Verbose
+}
+else {
+    Write-output "DSC folder exist. Move to the next line."
+}
+Remove-Item -Path "$DscFolderPath\*" -Verbose -Force
+InstallSC9 -OutputPath "$DscFolderPath"
+Start-DscConfiguration -Path "$DscFolderPath" -Wait -Force -Verbose
