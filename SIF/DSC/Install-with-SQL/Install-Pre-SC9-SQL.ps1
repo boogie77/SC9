@@ -7,12 +7,27 @@
 
 $DebugPreference = "Continue"
 
+[DSCLocalConfigurationManager()]
+Configuration LCMConfig
+{
+    Node localhost
+    {
+        Settings
+        {
+            ActionAfterReboot = 'ContinueConfiguration'
+            RebootNodeIfNeeded = $true
+        }
+    }
+}
+
 Configuration InstallSC9 {
 
     param
     (
         [string]
         $ComputerName = "$env:COMPUTERNAME",
+        $LcmFolderPath = "$env:SystemDrive\MOFs\LCM\",
+        $DscFolderPath = "$env:SystemDrive\MOFs\DSC\",
         $LocalPath = "$env:SystemDrive\DSC_Downloads",
         $ISOFolder = "\\SC9-SRV\ShareData",
         $MSIFolder = "$ISOFolder\msi_packs",
@@ -30,12 +45,20 @@ Configuration InstallSC9 {
 
     node localhost {
 
-        # Ensure presence of MOF folder
+        # Ensure presence of LCM MOF folder
         File CreateMOFFolders {
 
             Ensure          = "Present"
             Type            = "Directory"
-            DestinationPath = "$env:SystemDrive\MOFs"
+            DestinationPath = "$LcmFolderPath"
+        }
+
+        # Ensure presence of DSC MOF folder
+        File CreateMOFFolders {
+
+            Ensure          = "Present"
+            Type            = "Directory"
+            DestinationPath = "$DscFolderPath"
         }
 
         # Ensure presence of download folder and log subdirectory
@@ -300,5 +323,9 @@ Configuration InstallSC9 {
     }
 }
 
-InstallSC9 -OutputPath "$env:SystemDrive\MOFs\"
-Start-DscConfiguration -Path "$env:SystemDrive\MOFs\" -Wait -Force -Verbose
+Remove-Item -Path "$lcmFolderPath\*" -Verbose -Force
+Set-DscLocalConfigurationManager -Path "$lcmFolderPath"
+
+Remove-Item -Path "$dscFolderPath\*" -Verbose -Force
+InstallSC9 -OutputPath "$dscFolderPath"
+Start-DscConfiguration -Path "$dscFolderPath" -Wait -Force -Verbose
