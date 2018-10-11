@@ -196,6 +196,17 @@ Configuration InstallSC9 {
             ProductId = 'A836E244-6BEA-4E22-8D6A-55972AA3B04F'
         }
 
+        # Reboot the system before SQL setup and deploymment
+        xPendingReboot PendingReboot1 {
+            Name = $ComputerName
+        }
+        
+        # Specifies whether the node is automatically restarted when configuration requires it
+        LocalConfigurationManager
+        {
+            RebootNodeIfNeeded = $true
+        }
+
         # Install SQL Server 2017 System CLR Types x86
         Package 'SQLSysClrTypesPackage-SQL2017-x64'
         {
@@ -227,24 +238,13 @@ Configuration InstallSC9 {
             Name                 = "Microsoft.SqlServer.SqlManagementObjects"
             AdditionalParameters = @{"Destination" = $DestinationNuGetPath}
             RequiredVersion      = "140.17283.0"
-            DependsOn            = "[cChocoInstaller]SourceRepository"
+            DependsOn            = "[PackageManagementSource]SourceRepository"
         }
 
         # Install Microsoft ODBC Driver 13 for SQL Server
         cChocoPackageInstaller sqlserver-odbcdriver {
             Name      = "sqlserver-odbcdriver"
             DependsOn = "[cChocoInstaller]installChoco"
-        }
-
-        # Reboot the system before SQL setup and deploymment
-        xPendingReboot PendingReboot {
-            Name = $ComputerName
-        }
-        
-        # Specifies whether the node is automatically restarted when configuration requires it
-        LocalConfigurationManager
-        {
-            RebootNodeIfNeeded = $true
         }
 
         # Check prerequisites and mount SQL image file if needed
