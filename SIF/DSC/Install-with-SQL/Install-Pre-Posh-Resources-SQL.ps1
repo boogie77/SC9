@@ -2,18 +2,18 @@
 $DSCModulesPath = 'C:\Program Files\WindowsPowerShell\Modules'
 
 ### Check DSC Chocolatey module
-$DscModuleChoco = Get-Item -Path "$DSCModulesPath\*" | Where-Object {$_.Name -like "*Choco*"}
+$DscModuleChoco = Get-Item -Path "$DSCModulesPath\*" | Where-Object {$_.Name -like "cChoco"}
 if(!($DscModuleChoco)){
-    Write-Output "DSC module called `"Choco`" is not present. Starting with the installation."
+    Write-Output "DSC module called `"cChoco`" is not present. Starting with the installation."
     Install-Module -Name cChoco -Force -Verbose
-    Write-Output "Choco module installed. Move to the next line."
+    Write-Output "cChoco module installed. Move to the next line."
 }
     else{
-    Write-Output "DSC module called `"Choco`" is present. Move to the next line."
+    Write-Output "DSC module called `"cChoco`" is present. Move to the next line."
 }
 
 ### Check DSC SQL module
-$DscModuleSqlServer = Get-Item -Path "$DSCModulesPath\*" | Where-Object {$_.Name -like "*SqlServerDsc*"}
+$DscModuleSqlServer = Get-Item -Path "$DSCModulesPath\*" | Where-Object {$_.Name -like "SqlServerDsc"}
 if(!($DscModuleSqlServer)){
     Write-Output "DSC module called `"SqlServerDsc`" is not present. Starting with the installation."
     Install-Module -Name SqlServerDsc -Force -Verbose
@@ -35,7 +35,7 @@ if(!($PackageManagement)){
 }
 
 ### Check xPendingReboot module
-$xPendingReboot = Get-Item -Path "$DSCModulesPath\*" | Where-Object {$_.Name -eq "*xPendingReboot*"}
+$xPendingReboot = Get-Item -Path "$DSCModulesPath\*" | Where-Object {$_.Name -eq "xPendingReboot"}
 if(!($xPendingReboot)){
     Write-Output "DSC module called `"xPendingReboot`" is not present. Starting with the installation."
     Install-Module -Name xPendingReboot -Force -Verbose
