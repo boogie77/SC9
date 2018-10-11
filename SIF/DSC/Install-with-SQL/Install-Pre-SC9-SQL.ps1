@@ -313,9 +313,8 @@ if(!($TestPathLcm)){
 }
 else {
     Write-output "LCM folder exist. Move to the next line."
+    Remove-Item -Path "$LcmFolderPath\*" -Verbose -Force
 }
-
-Remove-Item -Path "$LcmFolderPath\*" -Verbose -Force
 LCMConfig -OutputPath "$LcmFolderPath"
 Set-DscLocalConfigurationManager -Path "$LcmFolderPath"
 
@@ -327,7 +326,7 @@ if(!($TestPathDsc)){
 }
 else {
     Write-output "DSC folder exist. Move to the next line."
+    Remove-Item -Path "$DscFolderPath\*" -Verbose -Force
 }
-Remove-Item -Path "$DscFolderPath\*" -Verbose -Force
 InstallSC9 -OutputPath "$DscFolderPath"
 Start-DscConfiguration -Path "$DscFolderPath" -Wait -Force -Verbose
