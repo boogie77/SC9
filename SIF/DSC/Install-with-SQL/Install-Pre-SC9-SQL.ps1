@@ -309,7 +309,7 @@ Configuration InstallSC9 {
 $LcmFolderPath = "$env:SystemDrive\MOFs\LCM\"
 $TestPathLcm = $(Test-path $LcmFolderPath)
 if(!($TestPathLcm)){
-    New-Item -Path "$LcmFolderPath" -Verbose
+    New-Item -Path "$LcmFolderPath" -ItemType Directory -Verbose
 }
 else {
     Write-output "LCM folder exist. Move to the next line."
@@ -322,7 +322,7 @@ Set-DscLocalConfigurationManager -Path "$LcmFolderPath"
 $DscFolderPath = "$env:SystemDrive\MOFs\DSC\"
 $TestPathDsc = $(Test-path $DscFolderPath)
 if(!($TestPathDsc)){
-    New-Item -Path "$DscFolderPath" -Verbose
+    New-Item -Path "$DscFolderPath" -ItemType Directory -Verbose
 }
 else {
     Write-output "DSC folder exist. Move to the next line."
