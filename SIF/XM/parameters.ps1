@@ -1,11 +1,9 @@
-# General Args
+# General Params
 $prefix                 = 'sc9_xm'
-$configsRoot            = Join-Path $PSScriptRoot Configs
-$packagesRoot           = Join-Path $PSScriptRoot Packages
-$licenseFilePath        = Join-Path $PSScriptRoot '..\\license.xml'
-$sqlServer              = '.'
-
-### Sitecore ###
+$configsRoot            = Join-Path "$PSScriptRoot" "Configs"
+$packagesRoot           = Join-Path "$PSScriptRoot\..\..\..\..\SC9\Packages" "Sitecore 9.0.1 rev. 171219 (WDP XP0 packages)"
+$licenseFilePath        = Join-Path "$PSScriptRoot\..\..\..\..\SC9\Packages" "license.xml"
+$sqlServer              = "$SqlServer"
 
 # Install Sitecore
 $sitecoreStandalone = @{

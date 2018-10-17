@@ -300,6 +300,7 @@ Configuration InstallSC9 {
             Features            = 'SQLENGINE'
             SourcePath          = "$SQLPath"
             SQLSysAdminAccounts = @('Administrators')
+            SecurityMode        = "SQL"
             DependsOn           = '[Script]OpenSQLISO'
         }
     }
