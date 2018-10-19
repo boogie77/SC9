@@ -277,7 +277,7 @@ Configuration InstallSC9 {
                 $volumeInfo = $mountResult | Get-Volume
                 $driveInfo = Get-PSDrive -Name $volumeInfo.DriveLetter
                 $null = Get-PSDrive
-                Start-Sleep -Seconds 20
+                Start-Sleep -Seconds 60
                 $JoinPath = Join-Path -Path $driveInfo.Root -ChildPath '*'
                 Get-ChildItem -Path $JoinPath | Copy-Item -Destination "$using:SQLPath" -Recurse -Force
                 Dismount-DiskImage -ImagePath "$using:ISOFolder\$using:SQLVer" -Verbose
@@ -323,7 +323,7 @@ Configuration InstallSC9 {
                 
                 $SqlServer = "$using:env:COMPUTERNAME"
                 $SqlUser = "$using:SqlUser"
-                $SqlUserPassword = "$using:SqlUserPassword" -AsSecureString
+                $SqlUserPassword = "$using:SqlUserPassword"
                 $loginType = "SqlLogin"
                 $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $SqlUser, $SqlUserPassword
                 Add-SqlLogin -ServerInstance $SqlServer -LoginName $SqlUser -LoginType $loginType -DefaultDatabase tempdb -Enable -GrantConnectSql -LoginPSCredential $Credential  
