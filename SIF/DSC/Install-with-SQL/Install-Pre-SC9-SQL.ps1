@@ -27,11 +27,14 @@ Configuration InstallSC9 {
         [string]
         $ComputerName = "$env:COMPUTERNAME",
         $LocalPath = "$env:SystemDrive\DSC_Downloads",
-        $ISOFolder = "\\SC9-SRV\ShareData",
+        $ISOFolder = "\\$env:COMPUTERNAME\ShareData",
         $MSIFolder = "$ISOFolder\msi_packs",
+        $DestinationNuGetPath = "$env:SystemDrive\NuGet",
         $SQLVer = "en_sql_server_2016_developer_with_service_pack_1_x64_dvd_9548071.iso",
         $SQLPath = "$env:SystemDrive\SQL2016DEVSP1",
-        $DestinationNuGetPath = "$env:SystemDrive\NuGet"
+        $SqlUser = "SQL_Admin",
+        $SqlUserPassword = "Pa55w0rd",
+        $configsRoot = ".\SQL-Query-Files"
     )
 
     # Make sure the DSC Resource modules are downloaded
@@ -302,6 +305,81 @@ Configuration InstallSC9 {
             SQLSysAdminAccounts = @('Administrators')
             SecurityMode        = "SQL"
             DependsOn           = '[Script]OpenSQLISO'
+        }
+
+        Script SQL_PostDeploymentSteps {
+            DependsOn = '[SqlSetup]InstallDefaultInstance'
+
+            GetScript = 
+            {
+
+            }
+
+            SetScript = 
+            {
+                # Set Admin User in SQL
+                Import-Module sqlserver  
+                Import-Module dbatools
+                
+                $SqlServer = "$using:env:COMPUTERNAME"
+                $SqlUser = "$using:SqlUser"
+                $SqlUserPassword = "$using:SqlUserPassword" -AsSecureString
+                $loginType = "SqlLogin"
+                $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $SqlUser, $SqlUserPassword
+                Add-SqlLogin -ServerInstance $SqlServer -LoginName $SqlUser -LoginType $loginType -DefaultDatabase tempdb -Enable -GrantConnectSql -LoginPSCredential $Credential  
+                $svr = New-Object ('Microsoft.SqlServer.Management.Smo.Server') $SqlServer
+                $svrole = $svr.Roles | Where-Object {$_.Name -eq 'sysadmin'}
+                $svrole.AddMember($SqlUser)
+
+                # Set contained database authentication to value of 1
+                $SqlServer | Invoke-DbaQuery -File "$using:configsRoot\SQL-Query.sql"
+
+                # Restart SQL services after above changes
+                Get-Service "SQL*" | Where-Object {$_.StartType -eq "Automatic" -and $_.StartType -notlike "Disabled"} | Restart-Service -Verbose -Force
+                Get-Service "SQL*" | FT
+            }
+
+            TestScript = 
+            { 
+                $False
+            }
+        }
+
+        Script FinalNotification {
+            DependsOn = '[Script]SQL_PostDeploymentSteps'
+
+            GetScript =
+            {
+                
+            }
+
+            SetScript = 
+            {
+                Add-Type -AssemblyName  System.Windows.Forms
+                $global:balloon = New-Object System.Windows.Forms.NotifyIcon
+                Get-Member -InputObject  $Global:balloon
+                [void](Register-ObjectEvent -InputObject $balloon -EventName MouseDoubleClick -SourceIdentifier IconClicked -Action {
+
+                    #Perform  cleanup actions on balloon tip
+                    $global:balloon.dispose()
+                    Unregister-Event -SourceIdentifier IconClicked
+                    Remove-Job -Name IconClicked
+                    Remove-Variable  -Name balloon -Scope Global
+                
+                })
+                $path = (Get-Process -id $pid).Path
+                $balloon.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($path)
+                $balloon.BalloonTipIcon = [System.Windows.Forms.ToolTipIcon]::Info
+                $balloon.BalloonTipText = 'All Sitecore 9 prerequisites are installed.'
+                $balloon.BalloonTipTitle = "Attention, $env:USERNAME!"
+                $balloon.Visible  = $true
+                $balloon.ShowBalloonTip(20000)
+                }
+            
+            TestScript =
+            {
+                $False
+            }
         }
     }
 }

@@ -9,9 +9,9 @@ Function Set-CustomSqlAdminUser {
 Import-Module sqlserver  
 Import-Module dbatools
 
-$SqlServer = Read-Host 'Add here SQL server instance?'
-$SqlUser = Read-Host 'Add here SQL user name?'
-$SqlUserPassword = Read-Host 'Add here password for the user?' -AsSecureString
+$SqlServer = "$env:COMPUTERNAME"
+$SqlUser = 'SQL_Admin'
+$SqlUserPassword = 'Pa55w0rd'
 $loginType = "SqlLogin"
 $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $SqlUser, $SqlUserPassword
 Add-SqlLogin -ServerInstance $SqlServer -LoginName $SqlUser -LoginType $loginType -DefaultDatabase tempdb -Enable -GrantConnectSql -LoginPSCredential $Credential  
