@@ -101,6 +101,17 @@ if(!($xPendingReboot)){
     Write-Output "DSC module called `"xPendingReboot`" is present. Move to the next line."
 }
 
+### Check xStorage module
+$xStorage = Get-Item -Path "$PSModulePath\*" | Where-Object {$_.Name -eq "xStorage"}
+if(!($xStorage)){
+    Write-Output "DSC module called `"xStorage`" is not present. Starting with the installation."
+    Install-Module -Name xStorage -Force -Verbose
+    Write-Output "xStorage module installed. Move to the next line."
+}
+    else{
+    Write-Output "DSC module called `"xStorage`" is present. Move to the next line."
+}
+
 ### Modules below can be obtained from the Sitecore MyGet repository.
 ### Check Package Provider NuGet
 $PackageProvider = Find-PackageProvider -Name NuGet | Where-Object {$_.Version -ge "2.8.5.201"}

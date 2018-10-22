@@ -43,6 +43,7 @@ Configuration InstallSC9 {
     Import-DscResource -ModuleName 'SqlServerDsc'
     Import-DscResource -ModuleName 'PackageManagement' -ModuleVersion '1.1.7.0'
     Import-DscResource -Module xPendingReboot
+    Import-DscResource -Module xStorage
 
     node localhost {
 
@@ -255,9 +256,31 @@ Configuration InstallSC9 {
             DependsOn = "[cChocoInstaller]installChoco"
         }
 
-        # Check prerequisites and mount SQL image file if needed
-        Script OpenSQLISO {
-            GetScript  =
+        # Check prerequisites and mount SQL image file if needed       
+        xMountImage MountSqlIso {
+            Ensure = "Present"
+            ImagePath = "$ISOFolder\$SQLVer"
+            DriveLetter = "S:"
+        }
+        
+        xWaitForDisk WaitSqlDisk
+        {
+             DiskId = 2
+             RetryIntervalSec = 60
+             RetryCount = 60
+             DependsOn = "MountSqlIso"
+        }
+
+        XWaitForVolume WaitForSqlIso
+        {
+            DriveLetter      = 'S'
+            RetryIntervalSec = 5
+            RetryCount       = 10
+            DependsOn = "WaitSqlDisk"
+        }
+
+        ### Script OpenSQLISO {
+        <# GetScript  =
             {
                 $sqlInstances = Get-CimInstance -ClassName win32_service -ComputerName localhost | Where-Object { $_.Name -match "mssql*" -and $_.PathName -match "sqlservr.exe" } | ForEach-Object { $_.Caption }
                 $res = $sqlInstances -ne $null -and $sqlInstances -gt 0
@@ -295,7 +318,7 @@ Configuration InstallSC9 {
                 }
                 $res
             }
-        }
+        } #>
 
         # Install SQL instance
         SqlSetup 'InstallDefaultInstance' {
@@ -304,7 +327,7 @@ Configuration InstallSC9 {
             SourcePath          = "$SQLPath"
             SQLSysAdminAccounts = @('Administrators')
             SecurityMode        = "SQL"
-            DependsOn           = '[Script]OpenSQLISO'
+            DependsOn           = '[XWaitForVolume]WaitForSqlIso'
         }
 
         Script SQL_PostDeploymentSteps {
