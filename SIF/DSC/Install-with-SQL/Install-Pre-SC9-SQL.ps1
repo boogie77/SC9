@@ -42,9 +42,9 @@ Configuration InstallSC9 {
     Import-DscResource -ModuleName 'cChoco'
     Import-DscResource -ModuleName 'SqlServerDsc'
     Import-DscResource -ModuleName 'PackageManagement' -ModuleVersion '1.1.7.0'
-    Import-DscResource -Module xPendingReboot
-    Import-DscResource -Module xStorage
-
+    Import-DscResource -ModuleName 'StorageDsc'
+    Import-DscResource -ModuleName 'xPendingReboot'
+    
     node localhost {
 
         # Ensure presence of download folder and log subdirectory
@@ -53,14 +53,6 @@ Configuration InstallSC9 {
             Ensure          = "Present"
             Type            = "Directory"
             DestinationPath = "$env:SystemDrive\DSC_Downloads\MSI_Logs"
-        }
-
-        # Ensure presence of SQL folder which is target fot the extracted ISO image
-        File CreateISOFolders {
-
-            Ensure          = "Present"
-            Type            = "Directory"
-            DestinationPath = "$SQLPath"
         }
 
         # Ensure presence of download folder and log subdirectory
@@ -257,68 +249,28 @@ Configuration InstallSC9 {
         }
 
         # Check prerequisites and mount SQL image file if needed       
-        xMountImage MountSqlIso {
+        MountImage SqlIso {
             Ensure = "Present"
             ImagePath = "$ISOFolder\$SQLVer"
             DriveLetter = "S:"
         }
-        
-        xWaitForDisk WaitSqlDisk
-        {
-             DiskId = 2
-             RetryIntervalSec = 60
-             RetryCount = 60
-             DependsOn = "MountSqlIso"
-        }
 
-        XWaitForVolume WaitForSqlIso
+        WaitForVolume WaitForSqlIso
         {
             DriveLetter      = 'S'
             RetryIntervalSec = 5
             RetryCount       = 10
-            DependsOn = "WaitSqlDisk"
+            DependsOn = '[MountImage]SqlIso'
         }
 
-        ### Script OpenSQLISO {
-        <# GetScript  =
-            {
-                $sqlInstances = Get-CimInstance -ClassName win32_service -ComputerName localhost | Where-Object { $_.Name -match "mssql*" -and $_.PathName -match "sqlservr.exe" } | ForEach-Object { $_.Caption }
-                $res = $sqlInstances -ne $null -and $sqlInstances -gt 0
-                $vals = @{
-                    Installed     = $res;
-                    InstanceCount = $sqlInstances.count
-                }
-                $vals
-            }
+        # Ensure presence of SQL folder which is target fot the extracted ISO image
+        File CreateISOFolders {
 
-            SetScript  =
-            {
-                $mountResult = Mount-DiskImage -ImagePath "$using:ISOFolder\$using:SQLVer" -PassThru
-                if ($mountResult -eq $null) {
-                    throw "Could not mount SQL install ISO image"
-                }
-                $volumeInfo = $mountResult | Get-Volume
-                $driveInfo = Get-PSDrive -Name $volumeInfo.DriveLetter
-                $null = Get-PSDrive
-                Start-Sleep -Seconds 60
-                $JoinPath = Join-Path -Path $driveInfo.Root -ChildPath '*'
-                Get-ChildItem -Path $JoinPath | Copy-Item -Destination "$using:SQLPath" -Recurse -Force
-                Dismount-DiskImage -ImagePath "$using:ISOFolder\$using:SQLVer" -Verbose
-            }
-
-            TestScript =
-            {
-                $sqlInstances = Get-WmiObject win32_service -computerName localhost | Where-Object { $_.Name -match "mssql*" -and $_.PathName -match "sqlservr.exe" } | ForEach-Object { $_.Caption }
-                $res = $sqlInstances -ne $null -and $sqlInstances -gt 0
-                if ($res) {
-                    Write-Verbose "SQL Server is already installed"
-                }
-                else {
-                    Write-Verbose "SQL Server is not installed"
-                }
-                $res
-            }
-        } #>
+            Ensure          = "Present"
+            Type            = "Directory"
+            SourcePath      = "S:" 
+            DestinationPath = "$SQLPath"
+        }
 
         # Install SQL instance
         SqlSetup 'InstallDefaultInstance' {
@@ -327,7 +279,7 @@ Configuration InstallSC9 {
             SourcePath          = "$SQLPath"
             SQLSysAdminAccounts = @('Administrators')
             SecurityMode        = "SQL"
-            DependsOn           = '[XWaitForVolume]WaitForSqlIso'
+            DependsOn           = '[WaitForVolume]WaitForSqlIso'
         }
 
         Script SQL_PostDeploymentSteps {
@@ -418,7 +370,7 @@ else {
     Remove-Item -Path "$LcmFolderPath\*" -Verbose -Force
 }
 LCMConfig -OutputPath "$LcmFolderPath"
-Set-DscLocalConfigurationManager -Path "$LcmFolderPath"
+Set-DscLocalConfigurationManager -Path "$LcmFolderPath" -Force -Verbose
 
 # Apply DSC settings
 $DscFolderPath = "$env:SystemDrive\MOFs\DSC\"
