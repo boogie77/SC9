@@ -268,8 +268,10 @@ Configuration InstallSC9 {
 
             Ensure          = "Present"
             Type            = "Directory"
+            Recurse         = $true
             SourcePath      = "S:" 
             DestinationPath = "$SQLPath"
+            DependsOn       = '[WaitForVolume]WaitForSqlIso'
         }
 
         # Install SQL instance
@@ -279,10 +281,10 @@ Configuration InstallSC9 {
             SourcePath          = "$SQLPath"
             SQLSysAdminAccounts = @('Administrators')
             SecurityMode        = "SQL"
-            DependsOn           = '[WaitForVolume]WaitForSqlIso'
+            DependsOn           = '[File]CreateISOFolders'
         }
 
-        Script SQL_PostDeploymentSteps {
+        Script SqlPostDeploymentSteps {
             DependsOn = '[SqlSetup]InstallDefaultInstance'
 
             GetScript = 
@@ -321,7 +323,7 @@ Configuration InstallSC9 {
         }
 
         Script FinalNotification {
-            DependsOn = '[Script]SQL_PostDeploymentSteps'
+            DependsOn = '[Script]SqlPostDeploymentSteps'
 
             GetScript =
             {
