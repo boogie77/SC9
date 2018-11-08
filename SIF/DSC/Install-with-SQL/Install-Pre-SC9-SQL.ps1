@@ -10,12 +10,13 @@ $DebugPreference = "Continue"
 [DSCLocalConfigurationManager()]
 Configuration LCMConfig
 {
-    Node localhost
+    Node "$env:COMPUTERNAME"
     {
         Settings
         {
-            ActionAfterReboot = 'ContinueConfiguration'
-            RebootNodeIfNeeded = $true
+            ActionAfterReboot   = 'ContinueConfiguration'
+            RebootNodeIfNeeded  = $true
+
         }
     }
 }
@@ -24,17 +25,16 @@ Configuration InstallSC9 {
 
     param
     (
-        [string]
-        $ComputerName = "$env:COMPUTERNAME",
-        $LocalPath = "$env:SystemDrive\DSC_Downloads",
-        $ISOFolder = "\\$env:COMPUTERNAME\ShareData",
-        $MSIFolder = "$ISOFolder\msi_packs",
-        $DestinationNuGetPath = "$env:SystemDrive\NuGet",
-        $SQLVer = "en_sql_server_2016_developer_with_service_pack_1_x64_dvd_9548071.iso",
-        $SQLPath = "$env:SystemDrive\SQL2016DEVSP1",
-        $SqlUser = "SQL_Admin",
-        $SqlUserPassword = "Pa55w0rd",
-        $configsRoot = ".\SQL-Query-Files"
+        [string]$ComputerName         = "$env:COMPUTERNAME",
+        [string]$LocalPath            = "$env:SystemDrive\DSC_Downloads",
+        [string]$ISOFolder            = "\\$env:COMPUTERNAME\ShareData",
+        [string]$MSIFolder            = "$ISOFolder\msi_packs",
+        [string]$DestinationNuGetPath = "$env:SystemDrive\NuGet",
+        [string]$SQLVer               = "en_sql_server_2016_developer_with_service_pack_1_x64_dvd_9548071.iso",
+        [string]$SQLPath              = "$env:SystemDrive\SQL2016DEVSP1",
+        [string]$SqlUser              = "SQL_Admin",
+        [string]$configsRoot          = ".\SQL-Query-Files",
+        [PSCredential]$SqlAdmPwd
     )
 
     # Make sure the DSC Resource modules are downloaded
@@ -45,7 +45,7 @@ Configuration InstallSC9 {
     Import-DscResource -ModuleName 'StorageDsc'
     Import-DscResource -ModuleName 'xPendingReboot'
     
-    node localhost {
+    Node $AllNodes.NodeName {
 
         # Ensure presence of download folder and log subdirectory
         File CreateDSCFolders {
@@ -281,11 +281,24 @@ Configuration InstallSC9 {
             SourcePath          = "$SQLPath"
             SQLSysAdminAccounts = @('Administrators')
             SecurityMode        = "SQL"
+            SAPwd               = $SAPwd
             DependsOn           = '[File]CreateISOFolders'
         }
 
+        SqlServerLogin 'AddAdminSqlLogin' {
+            Ensure                         = 'Present'
+            Name                           = 'SQL_Admin'
+            LoginType                      = 'SqlLogin'
+            ServerName                     = "$ComputerName"
+            InstanceName                   = 'MSSQLSERVER'
+            LoginCredential                = $SqlAdmPwd
+            LoginMustChangePassword        = $false
+            LoginPasswordExpirationEnabled = $true
+            LoginPasswordPolicyEnforced    = $true
+        }
+
         Script SqlPostDeploymentSteps {
-            DependsOn = '[SqlSetup]InstallDefaultInstance'
+            DependsOn = '[SqlServerLogin]AddAdminSqlLogin'
 
             GetScript = 
             {
@@ -298,12 +311,8 @@ Configuration InstallSC9 {
                 Import-Module sqlserver  
                 Import-Module dbatools
                 
-                $SqlServer = "$using:env:COMPUTERNAME"
-                $SqlUser = "$using:SqlUser"
-                $SqlUserPassword = "$using:SqlUserPassword"
-                $loginType = "SqlLogin"
-                $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $SqlUser, $SqlUserPassword
-                Add-SqlLogin -ServerInstance $SqlServer -LoginName $SqlUser -LoginType $loginType -DefaultDatabase tempdb -Enable -GrantConnectSql -LoginPSCredential $Credential  
+                $SqlServer = "$using:ComputerName"
+                $SqlUser = "$using:SqlUser"       
                 $svr = New-Object ('Microsoft.SqlServer.Management.Smo.Server') $SqlServer
                 $svrole = $svr.Roles | Where-Object {$_.Name -eq 'sysadmin'}
                 $svrole.AddMember($SqlUser)
@@ -313,7 +322,7 @@ Configuration InstallSC9 {
 
                 # Restart SQL services after above changes
                 Get-Service "SQL*" | Where-Object {$_.StartType -eq "Automatic" -and $_.StartType -notlike "Disabled"} | Restart-Service -Verbose -Force
-                Get-Service "SQL*" | FT
+                Get-Service "SQL*" | Format-Table
             }
 
             TestScript = 
@@ -361,20 +370,18 @@ Configuration InstallSC9 {
     }
 }
 
-# Apply LCM settings
-$LcmFolderPath = "$env:SystemDrive\MOFs\LCM\"
-$TestPathLcm = $(Test-path $LcmFolderPath)
-if(!($TestPathLcm)){
-    New-Item -Path "$LcmFolderPath" -ItemType Directory -Verbose
+$configdata = @{
+    AllNodes = @(
+        @{
+            NodeName                    = "$env:COMPUTERNAME"
+            PSDSCAllowPlainTextPassword = $false
+            Certificatefile             = 'C:\ShareData\CA\SC9-SRV-Target.cer'
+            Thumbprint                  = 'C9843FF7751A7B05FF95C97E165689C8471689EB'
+        }
+    )
 }
-else {
-    Write-output "LCM folder exist. Move to the next line."
-    Remove-Item -Path "$LcmFolderPath\*" -Verbose -Force
-}
-LCMConfig -OutputPath "$LcmFolderPath"
-Set-DscLocalConfigurationManager -Path "$LcmFolderPath" -Force -Verbose
 
-# Apply DSC settings
+# Check DSC folder settings
 $DscFolderPath = "$env:SystemDrive\MOFs\DSC\"
 $TestPathDsc = $(Test-path $DscFolderPath)
 if(!($TestPathDsc)){
@@ -384,5 +391,14 @@ else {
     Write-output "DSC folder exist. Move to the next line."
     Remove-Item -Path "$DscFolderPath\*" -Verbose -Force
 }
-InstallSC9 -OutputPath "$DscFolderPath"
+
+# Apply LCM settings
+LCMConfig -OutputPath "$DscFolderPath"
+Set-DscLocalConfigurationManager -Path "$DscFolderPath" -Force -Verbose
+
+# Run the configuration, generating the necessary credentials for SQL
+$AdminSqlCred = Get-Credential -UserName "SQL_Admin" -Message "Enter credentials for custom Admin user in SQL"
+
+#Apply DSC settings
+InstallSQL -SqlAdmPwd $AdminSqlCred -ConfigurationData $configdata -OutputPath "$DscFolderPath"
 Start-DscConfiguration -Path "$DscFolderPath" -Wait -Force -Verbose
